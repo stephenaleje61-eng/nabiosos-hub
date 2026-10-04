@@ -1,0 +1,545 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public profile details of a registered NABIOSOS student or member.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "User UID from Firebase Auth",
+          "maxLength": 128
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Full student or member name",
+          "maxLength": 60,
+          "minLength": 2
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Profile picture avatar URL or preset",
+          "maxLength": 1000
+        },
+        "department": {
+          "type": "string",
+          "description": "Department within biological sciences",
+          "maxLength": 60
+        },
+        "level": {
+          "type": "string",
+          "description": "Academic level",
+          "maxLength": 20
+        },
+        "bio": {
+          "type": "string",
+          "description": "Short bio or student tagline",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last update timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "displayName", "department", "level"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Private student account information.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Private email address",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Account registration timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["email"]
+    },
+    "ChatSpace": {
+      "title": "ChatSpace",
+      "description": "Live chat room or departmental space.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique space identifier",
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the space",
+          "maxLength": 100
+        },
+        "category": {
+          "type": "string",
+          "description": "Category: department or general",
+          "maxLength": 50
+        },
+        "department": {
+          "type": "string",
+          "description": "Optional department affinity",
+          "maxLength": 60
+        },
+        "level": {
+          "type": "string",
+          "description": "Optional level affinity (100L-400L or all)",
+          "maxLength": 30
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the space",
+          "maxLength": 300
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon identifier",
+          "maxLength": 50
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "name", "category", "description"]
+    },
+    "SpaceMessage": {
+      "title": "SpaceMessage",
+      "description": "Live group message posted in a space.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique message ID",
+          "maxLength": 128
+        },
+        "spaceId": {
+          "type": "string",
+          "description": "ID of the space this message belongs to",
+          "maxLength": 100
+        },
+        "authorId": {
+          "type": "string",
+          "description": "UID of the message author",
+          "maxLength": 128
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Name of the author",
+          "maxLength": 60
+        },
+        "authorPhotoURL": {
+          "type": "string",
+          "description": "Avatar of author",
+          "maxLength": 1000
+        },
+        "authorDepartment": {
+          "type": "string",
+          "description": "Department tag of author",
+          "maxLength": 60
+        },
+        "authorLevel": {
+          "type": "string",
+          "description": "Level tag of author",
+          "maxLength": 30
+        },
+        "text": {
+          "type": "string",
+          "description": "Message text content",
+          "maxLength": 2000,
+          "minLength": 1
+        },
+        "replyToId": {
+          "type": "string",
+          "description": "Optional referenced message ID for replies",
+          "maxLength": 128
+        },
+        "replyToText": {
+          "type": "string",
+          "description": "Snippet of original message being replied to",
+          "maxLength": 200
+        },
+        "replyToAuthor": {
+          "type": "string",
+          "description": "Name of replied author",
+          "maxLength": 60
+        },
+        "likesCount": {
+          "type": "number",
+          "description": "Count of reactions"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Server timestamp of message",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "spaceId", "authorId", "authorName", "text"]
+    },
+    "DirectChat": {
+      "title": "DirectChat",
+      "description": "Private 1-to-1 conversation metadata between accepted friends.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Chat identifier (lexicographically joined user UIDs)",
+          "maxLength": 260
+        },
+        "participantIds": {
+          "type": "string",
+          "description": "Comma-separated user UIDs of the two participants",
+          "maxLength": 260
+        },
+        "lastMessageText": {
+          "type": "string",
+          "description": "Snippet of last message",
+          "maxLength": 200
+        },
+        "lastMessageSenderId": {
+          "type": "string",
+          "description": "UID of last sender",
+          "maxLength": 128
+        },
+        "lastMessageAt": {
+          "type": "string",
+          "description": "Timestamp of last message",
+          "maxLength": 50
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Conversation start time",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "participantIds"]
+    },
+    "DirectMessage": {
+      "title": "DirectMessage",
+      "description": "Private one-to-one message in direct chat.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Message ID",
+          "maxLength": 128
+        },
+        "chatId": {
+          "type": "string",
+          "description": "Conversation ID",
+          "maxLength": 260
+        },
+        "senderId": {
+          "type": "string",
+          "description": "UID of sender",
+          "maxLength": 128
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Name of sender",
+          "maxLength": 60
+        },
+        "senderPhotoURL": {
+          "type": "string",
+          "description": "Avatar of sender",
+          "maxLength": 1000
+        },
+        "text": {
+          "type": "string",
+          "description": "Message content",
+          "maxLength": 2000,
+          "minLength": 1
+        },
+        "replyToId": {
+          "type": "string",
+          "description": "Replied message ID",
+          "maxLength": 128
+        },
+        "replyToText": {
+          "type": "string",
+          "description": "Snippet of message being replied to",
+          "maxLength": 200
+        },
+        "replyToAuthor": {
+          "type": "string",
+          "description": "Sender name of replied message",
+          "maxLength": 60
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "chatId", "senderId", "senderName", "text"]
+    },
+    "FriendRequest": {
+      "title": "FriendRequest",
+      "description": "Friend request sent between users.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Request identifier",
+          "maxLength": 128
+        },
+        "fromUserId": {
+          "type": "string",
+          "description": "UID of sender",
+          "maxLength": 128
+        },
+        "fromUserName": {
+          "type": "string",
+          "description": "Name of sender",
+          "maxLength": 60
+        },
+        "fromUserPhotoURL": {
+          "type": "string",
+          "description": "Photo of sender",
+          "maxLength": 1000
+        },
+        "toUserId": {
+          "type": "string",
+          "description": "UID of receiver",
+          "maxLength": 128
+        },
+        "toUserName": {
+          "type": "string",
+          "description": "Name of receiver",
+          "maxLength": 60
+        },
+        "status": {
+          "type": "string",
+          "description": "Status: pending, accepted, declined, cancelled",
+          "enum": ["pending", "accepted", "declined", "cancelled"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Sent timestamp",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Updated timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "fromUserId", "toUserId", "status"]
+    },
+    "Friendship": {
+      "title": "Friendship",
+      "description": "Accepted friendship connection between two users.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Combined user IDs (user1_user2 sorted)",
+          "maxLength": 260
+        },
+        "user1Id": {
+          "type": "string",
+          "description": "First user UID",
+          "maxLength": 128
+        },
+        "user2Id": {
+          "type": "string",
+          "description": "Second user UID",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp established",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "user1Id", "user2Id"]
+    },
+    "AppNotification": {
+      "title": "AppNotification",
+      "description": "In-app real-time notification.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Notification ID",
+          "maxLength": 128
+        },
+        "recipientId": {
+          "type": "string",
+          "description": "Target user UID",
+          "maxLength": 128
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Source user UID",
+          "maxLength": 128
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Source user name",
+          "maxLength": 60
+        },
+        "type": {
+          "type": "string",
+          "description": "Notification type",
+          "enum": ["friend_request", "friend_accepted", "new_message", "announcement"]
+        },
+        "title": {
+          "type": "string",
+          "description": "Notification title",
+          "maxLength": 100
+        },
+        "body": {
+          "type": "string",
+          "description": "Notification content",
+          "maxLength": 300
+        },
+        "linkId": {
+          "type": "string",
+          "description": "Target ID for deep-linking",
+          "maxLength": 260
+        },
+        "read": {
+          "type": "string",
+          "description": "Read flag: 'true' or 'false'",
+          "maxLength": 10
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "recipientId", "type", "title", "body"]
+    },
+    "UserReport": {
+      "title": "UserReport",
+      "description": "Spam, abuse, or content report submitted by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Report ID",
+          "maxLength": 128
+        },
+        "reporterId": {
+          "type": "string",
+          "description": "UID of reporter",
+          "maxLength": 128
+        },
+        "reportedUserId": {
+          "type": "string",
+          "description": "UID of reported user",
+          "maxLength": 128
+        },
+        "targetType": {
+          "type": "string",
+          "description": "Type of content reported: message, space_message, user",
+          "maxLength": 30
+        },
+        "targetId": {
+          "type": "string",
+          "description": "ID of reported content",
+          "maxLength": 260
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for report",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Submission timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "reporterId", "reportedUserId", "targetType", "targetId", "reason"]
+    },
+    "UserBlock": {
+      "title": "UserBlock",
+      "description": "User block record preventing interactions.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Block record ID (blocker_blocked)",
+          "maxLength": 260
+        },
+        "blockerId": {
+          "type": "string",
+          "description": "UID of the user doing the blocking",
+          "maxLength": 128
+        },
+        "blockedUserId": {
+          "type": "string",
+          "description": "UID of the user being blocked",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "blockerId", "blockedUserId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Public student profile records."
+    },
+    "/users/{userId}/private/info": {
+      "schema": "UserPrivateInfo",
+      "description": "Private user information isolated from public read."
+    },
+    "/spaces/{spaceId}": {
+      "schema": "ChatSpace",
+      "description": "Department and general discussion spaces."
+    },
+    "/spaces/{spaceId}/messages/{messageId}": {
+      "schema": "SpaceMessage",
+      "description": "Messages posted inside each chat space."
+    },
+    "/directChats/{chatId}": {
+      "schema": "DirectChat",
+      "description": "One-on-one direct chat channel between friends."
+    },
+    "/directChats/{chatId}/messages/{messageId}": {
+      "schema": "DirectMessage",
+      "description": "Direct messages between participants."
+    },
+    "/friendRequests/{requestId}": {
+      "schema": "FriendRequest",
+      "description": "Friend requests sent between users."
+    },
+    "/friends/{friendshipId}": {
+      "schema": "Friendship",
+      "description": "Established friendships between users."
+    },
+    "/notifications/{notificationId}": {
+      "schema": "AppNotification",
+      "description": "Notifications delivered to users."
+    },
+    "/reports/{reportId}": {
+      "schema": "UserReport",
+      "description": "Reports for moderation."
+    },
+    "/blocks/{blockId}": {
+      "schema": "UserBlock",
+      "description": "Blocked user relationships."
+    }
+  }
+}

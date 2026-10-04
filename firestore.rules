@@ -1,0 +1,215 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'stephenaleje61@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 260;
+    }
+
+    function isValidUserProfile(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 60 &&
+             data.department is string && data.department.size() <= 60 &&
+             data.level is string && data.level.size() <= 30;
+    }
+
+    function isValidSpaceMessage(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.spaceId is string && data.spaceId.size() <= 100 &&
+             data.authorId is string && data.authorId == request.auth.uid &&
+             data.authorName is string && data.authorName.size() <= 60 &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 2000;
+    }
+
+    function isValidDirectMessage(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.chatId is string && data.chatId.size() <= 260 &&
+             data.senderId is string && data.senderId == request.auth.uid &&
+             data.senderName is string && data.senderName.size() <= 60 &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 2000;
+    }
+
+    function isValidFriendRequest(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.fromUserId is string && data.fromUserId.size() <= 128 &&
+             data.toUserId is string && data.toUserId.size() <= 128 &&
+             data.status in ['pending', 'accepted', 'declined', 'cancelled'];
+    }
+
+    function isValidFriendship(data) {
+      return data.id is string && data.id.size() <= 260 &&
+             data.user1Id is string && data.user1Id.size() <= 128 &&
+             data.user2Id is string && data.user2Id.size() <= 128;
+    }
+
+    function isValidNotification(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.recipientId is string && data.recipientId.size() <= 128 &&
+             data.title is string && data.title.size() <= 100 &&
+             data.body is string && data.body.size() <= 300;
+    }
+
+    function isValidReport(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.reporterId is string && data.reporterId == request.auth.uid &&
+             data.reportedUserId is string && data.reportedUserId.size() <= 128 &&
+             data.reason is string && data.reason.size() <= 200;
+    }
+
+    function isValidBlock(data) {
+      return data.id is string && data.id.size() <= 260 &&
+             data.blockerId is string && data.blockerId == request.auth.uid &&
+             data.blockedUserId is string && data.blockedUserId.size() <= 128;
+    }
+
+    // User Public Profiles
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
+      allow delete: if isOwner(userId) || isAdmin();
+
+      // PII Split Collection: private data
+      match /private/{document} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Live Chat Spaces
+    match /spaces/{spaceId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn() && (isAdmin() || request.resource.data.category in ['department', 'general']);
+      allow delete: if isAdmin();
+
+      // Messages inside Spaces
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isValidSpaceMessage(request.resource.data);
+        allow update: if isSignedIn() && (
+          (resource.data.authorId == request.auth.uid && isValidSpaceMessage(request.resource.data)) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount'])
+        );
+        allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isAdmin());
+      }
+    }
+
+    // Direct 1-to-1 Chats
+    match /directChats/{chatId} {
+      allow get: if isSignedIn() && (
+        request.auth.uid in resource.data.participants ||
+        resource.data.participantIds.matches('.*' + request.auth.uid + '.*')
+      );
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && (
+        request.auth.uid in request.resource.data.participants ||
+        request.resource.data.participantIds.matches('.*' + request.auth.uid + '.*')
+      );
+      allow update: if isSignedIn() && (
+        request.auth.uid in resource.data.participants ||
+        resource.data.participantIds.matches('.*' + request.auth.uid + '.*')
+      );
+      allow delete: if isSignedIn() && (
+        request.auth.uid in resource.data.participants ||
+        resource.data.participantIds.matches('.*' + request.auth.uid + '.*')
+      );
+
+      // Direct Messages inside Direct Chat
+      match /messages/{messageId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isValidDirectMessage(request.resource.data);
+        allow update: if isSignedIn() && resource.data.senderId == request.auth.uid;
+        allow delete: if isSignedIn() && (resource.data.senderId == request.auth.uid || isAdmin());
+      }
+    }
+
+    // Friend Requests
+    match /friendRequests/{requestId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.fromUserId == request.auth.uid ||
+        resource.data.toUserId == request.auth.uid
+      );
+      allow create: if isSignedIn() &&
+        request.resource.data.fromUserId == request.auth.uid &&
+        isValidFriendRequest(request.resource.data);
+      allow update: if isSignedIn() && (
+        resource.data.toUserId == request.auth.uid ||
+        resource.data.fromUserId == request.auth.uid
+      ) && isValidFriendRequest(request.resource.data);
+      allow delete: if isSignedIn() && (
+        resource.data.toUserId == request.auth.uid ||
+        resource.data.fromUserId == request.auth.uid
+      );
+    }
+
+    // Friendships
+    match /friends/{friendshipId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.user1Id == request.auth.uid ||
+        resource.data.user2Id == request.auth.uid
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.user1Id == request.auth.uid ||
+        request.resource.data.user2Id == request.auth.uid
+      ) && isValidFriendship(request.resource.data);
+      allow update, delete: if isSignedIn() && (
+        resource.data.user1Id == request.auth.uid ||
+        resource.data.user2Id == request.auth.uid
+      );
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow get, list: if isSignedIn() && resource.data.recipientId == request.auth.uid;
+      allow create: if isSignedIn() && isValidNotification(request.resource.data);
+      allow update: if isSignedIn() && resource.data.recipientId == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.recipientId == request.auth.uid;
+    }
+
+    // Content Reports & Moderation
+    match /reports/{reportId} {
+      allow create: if isSignedIn() && isValidReport(request.resource.data);
+      allow get, list, delete: if isAdmin();
+    }
+
+    // User Blocks
+    match /blocks/{blockId} {
+      allow get, list: if isSignedIn() && resource.data.blockerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidBlock(request.resource.data);
+      allow delete: if isSignedIn() && resource.data.blockerId == request.auth.uid;
+    }
+
+    // Admin collection for authorization checks
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Connection testing
+    match /test/{docId} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

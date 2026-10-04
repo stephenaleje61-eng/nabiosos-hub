@@ -1,0 +1,6 @@
+{
+  "name": "NABIOSOS Hub",
+  "description": "The official modern community and departmental live chat hub for NABIOSOS students and staff.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
